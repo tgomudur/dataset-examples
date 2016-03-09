@@ -20,6 +20,20 @@ def read_and_write_file(json_file_path, csv_file_path, column_names):
                 line_contents = json.loads(line)
                 csv_file.writerow(get_row(line_contents, column_names))
 
+def read_and_write_file_by_category(json_file_path, csv_file_path, column_names, category_name):
+    """Read in the json dataset file and write it out to a csv file, given the column names."""
+    with open(csv_file_path, 'wb+') as fout:
+        csv_file = csv.writer(fout)
+        csv_file.writerow(list(column_names))
+        if "categories" not in list(column_names):
+            # print "No column named category"
+            return
+        with open(json_file_path) as fin:
+            for line in fin:
+                line_contents = json.loads(line)
+                if category_name in line_contents["categories"]:
+                    csv_file.writerow(get_row(line_contents, column_names))
+
 def get_superset_of_column_names_from_file(json_file_path):
     """Read in the json dataset file and return the superset of column names."""
     column_names = set()
@@ -111,13 +125,20 @@ if __name__ == '__main__':
     parser.add_argument(
             'json_file',
             type=str,
+            default='../dataset/yelp_academic_dataset_business.json',
             help='The json file to convert.',
             )
-
+    parser.add_argument(
+        'category_name',
+        type = str,
+        default= "Restaurants",
+        help = "Category Name"
+    )
     args = parser.parse_args()
 
     json_file = args.json_file
     csv_file = '{0}.csv'.format(json_file.split('.json')[0])
 
+    category_name = args.category_name
     column_names = get_superset_of_column_names_from_file(json_file)
-    read_and_write_file(json_file, csv_file, column_names)
+    read_and_write_file_by_category(json_file, csv_file, column_names, category_name)
